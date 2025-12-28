@@ -10,19 +10,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Fetch New Link
+     - name: Fetch New Link
         run: |
-          # تحميل قائمة القنوات
-          curl -L -s https://iptv-org.github.io/iptv/countries/ar.m3u > playlist.m3u
-          
-          # البحث عن رابط القناة (مثلاً Alkass One)
-          # يمكنك استبدال Alkass One بـ Arryadia أو أي اسم قناة رياضية أخرى
-          grep -A 1 "Alkass One" playlist.m3u | grep "http" | head -n 1 > link.txt
-          
-          # التأكد من نجاح العملية
-          if [ ! -s link.txt ]; then
-            echo "http://example.com/fallback.m3u8" > link.txt
-          fi
+          # سحب رابط قناة رياضية مباشرة ومستقرة
+          echo "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/ar/dubaisports1.m3u8" > link.txt
+
 
       - name: Commit and Push
         run: |
