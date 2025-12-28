@@ -1,8 +1,8 @@
-name: Update Sports Channels
+name: YMAX beIN Sports Updater
 on:
   schedule:
-    - cron: '0 */2 * * *' # تحديث تلقائي كل ساعتين لضمان عمل الروابط
-  workflow_dispatch:
+    - cron: '0 */2 * * *' # تحديث كل ساعتين
+  workflow_dispatch: # تشغيل يدوي
 
 jobs:
   update-link:
@@ -10,24 +10,31 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Fetch Sports Links
+      - name: Fetch beIN Sports Link
         run: |
-          # تحميل قائمة قنوات رياضية مجمعة من مصادر موثوقة
-          curl -L -s https://iptv-org.github.io/iptv/categories/sports.m3u > sports.m3u
+          # تحميل قائمة القنوات الرياضية
+          curl -L -s https://iptv-org.github.io/iptv/categories/sports.m3u -o sports.m3u
           
-          # محاولة جلب قناة الكاس (Alkass) أو SSC أو beIN المفتوحة
-          # السكريبت يبحث بالترتيب عن المتاح والأكثر استقراراً
-          grep -iE "Alkass|SSC|beIN|AD Sports" sports.m3u | grep "http" | head -n 1 > link.txt
+          # محاولة البحث عن beIN Sports 1 أولاً، ثم beIN بشكل عام، ثم الكأس
+          LINK=$(grep -A 1 "beIN Sports 1" sports.m3u | grep "http" | head -n 1)
+          if [ -z "$LINK" ]; then
+            LINK=$(grep -A 1 "beIN Sports" sports.m3u | grep "http" | head -n 1)
+          fi
+          if [ -z "$LINK" ]; then
+            LINK=$(grep -A 1 "Alkass One" sports.m3u | grep "http" | head -n 1)
+          fi
           
-          # إذا فشل البحث، نضع رابط قناة دبي الرياضية كخيار ثابت لا ينقطع
-          if [ ! -s link.txt ]; then
+          # إذا لم يجد شيئاً، يضع رابط دبي الرياضية المضمون 100%
+          if [ ! -z "$LINK" ]; then
+            echo "$LINK" > link.txt
+          else
             echo "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/ar/dubaisports1.m3u8" > link.txt
           fi
 
       - name: Commit and Push
         run: |
-          git config --global user.name 'SportsBot'
-          git config --global user.email 'bot@github.com'
+          git config --global user.name 'ymax-bot'
+          git config --global user.email 'bot@ymax.net'
           git add link.txt
-          git commit -m "Updated Sports Link to latest working stream" || exit 0
+          git commit -m "Updated to beIN Sports Link" || exit 0
           git push
