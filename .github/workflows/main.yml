@@ -1,0 +1,24 @@
+name: Update IPTV Link
+on:
+  schedule:
+    - cron: '0 */3 * * *' # يعمل تلقائياً كل 3 ساعات
+  workflow_dispatch: # يسمح لك بتشغيله يدوياً أيضاً
+
+jobs:
+  update-link:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Fetch New Link
+        run: |
+          # هنا نستخدم رابط موثوق لجلب قائمة القنوات
+          curl -s https://iptv-org.github.io/iptv/countries/ar.m3u > temp.m3u
+          # استخراج رابط قناة معينة (مثلاً الكأس أو دبي الرياضية)
+          grep -A 1 "Al Kass" temp.m3u | grep "http" | head -n 1 > link.txt
+      - name: Commit and Push
+        run: |
+          git config --global user.name 'Bot'
+          git config --global user.email 'bot@github.com'
+          git add link.txt
+          git commit -m "Update live link"
+          git push
