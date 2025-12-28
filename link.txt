@@ -1,1 +1,1 @@
-http://example.com/fallback.m3u8
+#EXTINF:-1 tvg-id="AlkassThree.qa@SD" tvg-logo="https://i.imgur.com/d57BdFh.png" group-title="Sports",Alkass Three (720p)
