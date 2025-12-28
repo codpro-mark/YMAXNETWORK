@@ -1,30 +1,24 @@
 name: YMAX beIN Sports Updater
 on:
   schedule:
-    - cron: '0 */2 * * *' # تحديث كل ساعتين
-  workflow_dispatch: # تشغيل يدوي
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
 
 jobs:
   update-link:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # لسحب كامل التاريخ وتجنب أخطاء الرفع
 
       - name: Fetch beIN Sports Link
         run: |
-          # تحميل قائمة القنوات الرياضية
           curl -L -s https://iptv-org.github.io/iptv/categories/sports.m3u -o sports.m3u
-          
-          # محاولة البحث عن beIN Sports 1 أولاً، ثم beIN بشكل عام، ثم الكأس
           LINK=$(grep -A 1 "beIN Sports 1" sports.m3u | grep "http" | head -n 1)
           if [ -z "$LINK" ]; then
             LINK=$(grep -A 1 "beIN Sports" sports.m3u | grep "http" | head -n 1)
           fi
-          if [ -z "$LINK" ]; then
-            LINK=$(grep -A 1 "Alkass One" sports.m3u | grep "http" | head -n 1)
-          fi
-          
-          # إذا لم يجد شيئاً، يضع رابط دبي الرياضية المضمون 100%
           if [ ! -z "$LINK" ]; then
             echo "$LINK" > link.txt
           else
@@ -35,6 +29,7 @@ jobs:
         run: |
           git config --global user.name 'ymax-bot'
           git config --global user.email 'bot@ymax.net'
+          git pull --rebase origin main # الخطوة السحرية لحل المشكلة التي في الصورة
           git add link.txt
           git commit -m "Updated to beIN Sports Link" || exit 0
-          git push
+          git push origin main
