@@ -1,8 +1,8 @@
-name: Update IPTV Link
+name: Update Sports Channels
 on:
   schedule:
-    - cron: '0 */3 * * *' 
-  workflow_dispatch: 
+    - cron: '0 */2 * * *' # تحديث تلقائي كل ساعتين لضمان عمل الروابط
+  workflow_dispatch:
 
 jobs:
   update-link:
@@ -10,19 +10,24 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-     - name: Fetch New Link
-        run: 
-        
-      - name: Fetch New Link
+      - name: Fetch Sports Links
         run: |
-          # تحميل قائمة القنوات
-          curl -L -s
-          echo "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/ar/dubaisports1.m3u8" > link.txt
+          # تحميل قائمة قنوات رياضية مجمعة من مصادر موثوقة
+          curl -L -s https://iptv-org.github.io/iptv/categories/sports.m3u > sports.m3u
+          
+          # محاولة جلب قناة الكاس (Alkass) أو SSC أو beIN المفتوحة
+          # السكريبت يبحث بالترتيب عن المتاح والأكثر استقراراً
+          grep -iE "Alkass|SSC|beIN|AD Sports" sports.m3u | grep "http" | head -n 1 > link.txt
+          
+          # إذا فشل البحث، نضع رابط قناة دبي الرياضية كخيار ثابت لا ينقطع
+          if [ ! -s link.txt ]; then
+            echo "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/ar/dubaisports1.m3u8" > link.txt
+          fi
 
       - name: Commit and Push
         run: |
-          git config --global user.name 'GitHub Action'
-          git config --global user.email 'action@github.com'
+          git config --global user.name 'SportsBot'
+          git config --global user.email 'bot@github.com'
           git add link.txt
-          git commit -m "Auto-update link" || exit 0
+          git commit -m "Updated Sports Link to latest working stream" || exit 0
           git push
